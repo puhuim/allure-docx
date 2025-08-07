@@ -260,12 +260,56 @@ class ReportBuilder:
                 if 'name' not in attachment:
                     attachment['name'] = ""
                 self.document.add_paragraph(f"[Attachment] {attachment['name']}", style="Step")
+                
+                # Handle image attachments
                 if "image" in attachment["type"]:
                     self.document.add_picture(
                         os.path.join(self.session["allure_dir"], attachment["source"]),
                         width=Mm(100),
                     )
                     self.document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.LEFT
+                
+                # Handle JSON attachments
+                elif "json" in attachment["type"] or attachment["type"] == "application/json":
+                    try:
+                        json_file_path = os.path.join(self.session["allure_dir"], attachment["source"])
+                        if os.path.exists(json_file_path):
+                            with open(json_file_path, 'r', encoding='utf-8') as f:
+                                json_content = f.read()
+                            
+                            # Add JSON content in a formatted way
+                            self.document.add_paragraph("JSON Content:", style="Step")
+                            table = self.document.add_table(rows=1, cols=1, style="Trace table")
+                            hdr_cells = table.rows[0].cells
+                            hdr_cells[0].add_paragraph(json_content, style="Code")
+                            self.document.add_paragraph("", style=None)
+                        else:
+                            self.document.add_paragraph(f"JSON file not found: {attachment['source']}", style="Step")
+                    except Exception as e:
+                        self.document.add_paragraph(f"Error reading JSON file: {str(e)}", style="Step")
+                
+                # Handle text attachments
+                elif "text" in attachment["type"] or attachment["type"] == "text/plain":
+                    try:
+                        text_file_path = os.path.join(self.session["allure_dir"], attachment["source"])
+                        if os.path.exists(text_file_path):
+                            with open(text_file_path, 'r', encoding='utf-8') as f:
+                                text_content = f.read()
+                            
+                            # Add text content
+                            self.document.add_paragraph("Text Content:", style="Step")
+                            table = self.document.add_table(rows=1, cols=1, style="Trace table")
+                            hdr_cells = table.rows[0].cells
+                            hdr_cells[0].add_paragraph(text_content, style="Code")
+                            self.document.add_paragraph("", style=None)
+                        else:
+                            self.document.add_paragraph(f"Text file not found: {attachment['source']}", style="Step")
+                    except Exception as e:
+                        self.document.add_paragraph(f"Error reading text file: {str(e)}", style="Step")
+                
+                # Handle other attachment types
+                else:
+                    self.document.add_paragraph(f"Attachment type '{attachment['type']}' not supported for display", style="Step")
 
     @staticmethod
     def _format_argval(argval):
