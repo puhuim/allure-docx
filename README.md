@@ -1,8 +1,23 @@
-# allure-docx
-DOCX and PDF report generation based on allure-generated result files.
+# allure-docx (Enhanced Version)
+DOCX and PDF report generation based on allure-generated result files with **enhanced JSON attachment support**.
+
+## 🆕 Enhanced Features
+
+This is an enhanced fork of the original allure-docx project with the following improvements:
+
+- ✅ **JSON Attachment Support**: Now supports JSON file attachments in Allure reports
+- ✅ **Text File Support**: Enhanced support for text file attachments
+- ✅ **Better Error Handling**: Improved error handling for attachment processing
+- ✅ **Enhanced Documentation**: Updated documentation for new features
+
+## Installation (Enhanced Version)
+
+```bash
+pip install git+https://github.com/puhuim/allure-docx.git@json-attachment-support
+```
 
 ## About
-This package is developed in collaboration by [Typhoon Hil](https://www.typhoon-hil.com/) and the [Fraunhofer Institute for Solar Energy Systems ISE](https://www.ise.fraunhofer.de/). Users are welcome to test and report problems and suggestions by creating an issue. Note that the package is not officially supported by Typhoon HIL and is still on the alpha phase.
+This package is developed in collaboration by [Typhoon Hil](https://www.typhoon-hil.com/) and the [Fraunhofer Institute for Solar Energy Systems ISE](https://www.ise.fraunhofer.de/). This enhanced version includes additional features by [puhuim](https://github.com/puhuim). Users are welcome to test and report problems and suggestions by creating an issue. Note that the package is not officially supported by Typhoon HIL and is still on the alpha phase.
 
 
 ### Limitations
