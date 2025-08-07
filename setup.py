@@ -6,9 +6,9 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="allure-docx",
-    description="Docx report generator based on allure-generated json files.",
-    author="Victor Maryama (Typhoon HIL, Inc), Bjarne Scheimann (Fraunhofer Institute for Solar Energy Systems ISE)",
-    version="0.4.0a1",
+    description="Docx report generator based on allure-generated json files with enhanced JSON attachment support.",
+    author="Victor Maryama (Typhoon HIL, Inc), Bjarne Scheimann (Fraunhofer Institute for Solar Energy Systems ISE), puhuim (Enhanced version)",
+    version="0.4.0a1.json-support",
     license="MIT",
     install_requires=[
         'setuptools-git~=1.2',
@@ -33,7 +33,7 @@ setup(
     long_description_content_type='text/markdown',
 
     project_urls={
-        'Source':  'https://github.com/typhoon-hil/allure-docx',
-        'Tracker': 'https://github.com/typhoon-hil/allure-docx/issues',
+        'Source':  'https://github.com/puhuim/allure-docx',
+        'Tracker': 'https://github.com/puhuim/allure-docx/issues',
     },
 )
