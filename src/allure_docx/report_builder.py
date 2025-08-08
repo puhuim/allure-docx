@@ -258,7 +258,7 @@ class ReportBuilder:
         Print attachments from allure results to the document.
         """
         if "attachments" in item:
-            for attachment in item["attachments"]:
+            for attachment in item["attachments"][-3:]:
                 if 'name' not in attachment:
                     attachment['name'] = ""
                 self.document.add_paragraph(f"[Attachment] {attachment['name']}", style="Step")
