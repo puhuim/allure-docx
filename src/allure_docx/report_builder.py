@@ -279,8 +279,8 @@ class ReportBuilder:
                             with open(json_file_path, 'r', encoding='utf-8') as f:
                                 json_content = f.read()
                             
-                            # Truncate JSON content if too large (max 15000 characters)
-                            max_json_length = 15000
+                            # Truncate JSON content if too large (max 1500 characters)
+                            max_json_length = 1500
                             original_length = len(json_content)
                             if original_length > max_json_length:
                                 # Keep the last part of the JSON
