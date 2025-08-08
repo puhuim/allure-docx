@@ -338,12 +338,15 @@ class ReportBuilder:
                     step_style = "Step Failed"
                 else:
                     step_style = "Step"
-                self.document.add_paragraph(f"{indent_str}> {step['name']}", style=step_style)
+                cleaned_step_name = self._clean_xml_text(step['name'])
+                self.document.add_paragraph(f"{indent_str}> {cleaned_step_name}", style=step_style)
                 if "parameters" in config_info and "parameters" in step:
                     for params in step["parameters"]:
                         paragraph = self.document.add_paragraph(f"{indent_str}    ", style="Step Param Parag")
+                        cleaned_param_name = self._clean_xml_text(params['name'])
+                        cleaned_param_value = self._clean_xml_text(self._format_argval(params['value']))
                         paragraph.add_run(
-                            f"{params['name']} = {self._format_argval(params['value'])}",
+                            f"{cleaned_param_name} = {cleaned_param_value}",
                             style="Step Param",
                         )
                 if "details" in config_info and "statusDetails" in step and len(step["statusDetails"]) != 0:
@@ -536,7 +539,8 @@ class ReportBuilder:
         config_info = self.config["info"][test["status"]]
         config_labels = self.config["labels"][test["status"]]
 
-        self.document.add_paragraph(f"{test['name']}  [ {test['status']} ]", style=f"Heading {test['status']}")
+        cleaned_name = self._clean_xml_text(test['name'])
+        self.document.add_paragraph(f"{cleaned_name}  [ {test['status']} ]", style=f"Heading {test['status']}")
 
         table = None
         added_table = False
@@ -582,14 +586,17 @@ class ReportBuilder:
         if "description" in config_info:
             self.document.add_heading("Description", level=2)
             if "description" in test and len(test["description"]) != 0:
-                self.document.add_paragraph(test["description"])
+                cleaned_description = self._clean_xml_text(test["description"])
+                self.document.add_paragraph(cleaned_description)
             else:
                 self.document.add_paragraph("No description available.")
 
         if "parameters" in config_info and "parameters" in test and len(test["parameters"]) != 0:
             self.document.add_heading("Parameters", level=2)
             for p in test["parameters"]:
-                self.document.add_paragraph(f"{p['name']}: {p['value']}", style="Step")
+                cleaned_param_name = self._clean_xml_text(p['name'])
+                cleaned_param_value = self._clean_xml_text(p['value'])
+                self.document.add_paragraph(f"{cleaned_param_name}: {cleaned_param_value}", style="Step")
 
         if (
                 "details" in config_info
