@@ -251,7 +251,9 @@ class ReportBuilder:
             # print only the most recent test, history could be included later.
             self._print_test(test)
 
-    def _print_attachments(self, item):
+    def _print_attachments(self, item, config_info):
+        if "attachments" not in config_info:
+            return
         """
         Print attachments from allure results to the document.
         """
@@ -306,8 +308,8 @@ class ReportBuilder:
                             with open(text_file_path, 'r', encoding='utf-8') as f:
                                 text_content = f.read()
                             
-                            # Truncate text content if too large (max 10000 characters)
-                            max_text_length = 10000
+                            # Truncate text content if too large (max 1000 characters)
+                            max_text_length = 1000
                             original_length = len(text_content)
                             if original_length > max_text_length:
                                 # Keep the last part of the text
@@ -376,7 +378,7 @@ class ReportBuilder:
                         hdr_cells[0].add_paragraph(step["statusDetails"]["trace"] + "\n", style="Code")
                         self.document.add_paragraph("", style=None)
                 if "attachments" in config_info:
-                    self._print_attachments(step)
+                    self._print_attachments(step, config_info)
                 self._print_steps(step, config_info, indent + 1)
 
     @staticmethod
@@ -642,14 +644,14 @@ class ReportBuilder:
                 if "befores" in parent:
                     for before in parent["befores"]:
                         self.document.add_paragraph(f"[Fixture] {before['name']}", style="Step")
-                        self._print_attachments(before)
+                        self._print_attachments(before, config_info)
                         self._print_steps(before, config_info, 1)
             if self.document.paragraphs[-1].text == "Test Setup":
                 self._delete_paragraph(self.document.paragraphs[-1])
 
         if "body" in config_info:
             self.document.add_heading("Test Body", level=2)
-            self._print_attachments(test)
+            self._print_attachments(test, config_info)
             self._print_steps(test, config_info)
             if self.document.paragraphs[-1].text == "Test Body":
                 self._delete_paragraph(self.document.paragraphs[-1])
@@ -660,7 +662,7 @@ class ReportBuilder:
                 if "afters" in parent:
                     for after in parent["afters"]:
                         self.document.add_paragraph(f"[Fixture] {after['name']}", style="Step")
-                        self._print_attachments(after)
+                        self._print_attachments(after, config_info)
                         self._print_steps(after, config_info, 1)
             if self.document.paragraphs[-1].text == "Test Teardown":
                 self._delete_paragraph(self.document.paragraphs[-1])
