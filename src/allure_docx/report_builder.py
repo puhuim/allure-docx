@@ -277,11 +277,21 @@ class ReportBuilder:
                             with open(json_file_path, 'r', encoding='utf-8') as f:
                                 json_content = f.read()
                             
-                            # Add JSON content in a formatted way
-                            self.document.add_paragraph("JSON Content:", style="Step")
+                            # Truncate JSON content if too large (max 15000 characters)
+                            max_json_length = 15000
+                            original_length = len(json_content)
+                            if original_length > max_json_length:
+                                # Keep the last part of the JSON
+                                truncated_content = json_content[-max_json_length:]
+                                # Add a note about truncation
+                                self.document.add_paragraph(f"JSON Content (truncated - showing last {max_json_length} characters of {original_length}):", style="Step")
+                            else:
+                                truncated_content = json_content
+                                self.document.add_paragraph("JSON Content:", style="Step")
+                            
                             table = self.document.add_table(rows=1, cols=1, style="Trace table")
                             hdr_cells = table.rows[0].cells
-                            hdr_cells[0].add_paragraph(json_content, style="Code")
+                            hdr_cells[0].add_paragraph(truncated_content, style="Code")
                             self.document.add_paragraph("", style=None)
                         else:
                             self.document.add_paragraph(f"JSON file not found: {attachment['source']}", style="Step")
@@ -296,11 +306,21 @@ class ReportBuilder:
                             with open(text_file_path, 'r', encoding='utf-8') as f:
                                 text_content = f.read()
                             
-                            # Add text content
-                            self.document.add_paragraph("Text Content:", style="Step")
+                            # Truncate text content if too large (max 10000 characters)
+                            max_text_length = 10000
+                            original_length = len(text_content)
+                            if original_length > max_text_length:
+                                # Keep the last part of the text
+                                truncated_content = text_content[-max_text_length:]
+                                # Add a note about truncation
+                                self.document.add_paragraph(f"Text Content (truncated - showing last {max_text_length} characters of {original_length}):", style="Step")
+                            else:
+                                truncated_content = text_content
+                                self.document.add_paragraph("Text Content:", style="Step")
+                            
                             table = self.document.add_table(rows=1, cols=1, style="Trace table")
                             hdr_cells = table.rows[0].cells
-                            hdr_cells[0].add_paragraph(text_content, style="Code")
+                            hdr_cells[0].add_paragraph(truncated_content, style="Code")
                             self.document.add_paragraph("", style=None)
                         else:
                             self.document.add_paragraph(f"Text file not found: {attachment['source']}", style="Step")
