@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import json
 import matplotlib.pyplot as plt
+import re
 
 from os import listdir
 from os.path import join, isfile
@@ -347,13 +348,15 @@ class ReportBuilder:
                         )
                 if "details" in config_info and "statusDetails" in step and len(step["statusDetails"]) != 0:
                     if "message" in step["statusDetails"] and len(step["statusDetails"]["message"]) != 0:
-                        self.document.add_paragraph(step["statusDetails"]["message"], style=step_style)
+                        cleaned_message = self._clean_xml_text(step["statusDetails"]["message"])
+                        self.document.add_paragraph(cleaned_message, style=step_style)
 
                     if "trace" in config_info and "trace" in step["statusDetails"] and len(
                             step["statusDetails"]["trace"]) != 0:
                         table = self.document.add_table(rows=1, cols=1, style="Trace table")
                         hdr_cells = table.rows[0].cells
-                        hdr_cells[0].add_paragraph(step["statusDetails"]["trace"] + "\n", style="Code")
+                        cleaned_trace = self._clean_xml_text(step["statusDetails"]["trace"])
+                        hdr_cells[0].add_paragraph(cleaned_trace + "\n", style="Code")
                         self.document.add_paragraph("", style=None)
                 if "attachments" in config_info:
                     self._print_attachments(step)
@@ -601,11 +604,13 @@ class ReportBuilder:
         ):
             self.document.add_heading("Details", level=2)
             if "message" in test["statusDetails"]:
-                self.document.add_paragraph(test["statusDetails"]["message"], style=None)
+                cleaned_message = self._clean_xml_text(test["statusDetails"]["message"])
+                self.document.add_paragraph(cleaned_message, style=None)
             if "trace" in config_info and "trace" in test["statusDetails"]:
                 table = self.document.add_table(rows=1, cols=1, style="Trace table")
                 hdr_cells = table.rows[0].cells
-                hdr_cells[0].add_paragraph(test["statusDetails"]["trace"] + "\n", style="Code")
+                cleaned_trace = self._clean_xml_text(test["statusDetails"]["trace"])
+                hdr_cells[0].add_paragraph(cleaned_trace + "\n", style="Code")
                 self.document.add_paragraph("", style=None)
 
         if "links" in config_info and "links" in test and len(test["links"]) != 0:
@@ -646,3 +651,21 @@ class ReportBuilder:
                 self._delete_paragraph(self.document.paragraphs[-1])
 
         self.document.add_paragraph("", style=None)
+
+    @staticmethod
+    def _clean_xml_text(text):
+        """
+        Clean text to be XML compatible by removing NULL bytes and control characters.
+        """
+        if not text:
+            return ""
+        
+        # Remove NULL bytes and control characters except newlines and tabs
+        cleaned = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', str(text))
+        
+        # Replace problematic characters with safe alternatives
+        cleaned = cleaned.replace('\x0A', '\n')  # Line feed
+        cleaned = cleaned.replace('\x0D', '\r')  # Carriage return
+        cleaned = cleaned.replace('\x09', '\t')  # Tab
+        
+        return cleaned
