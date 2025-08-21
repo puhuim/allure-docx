@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import json
 import matplotlib.pyplot as plt
+import re
 
 from os import listdir
 from os.path import join, isfile
@@ -359,23 +360,28 @@ class ReportBuilder:
                     step_style = "Step Failed"
                 else:
                     step_style = "Step"
-                self.document.add_paragraph(f"{indent_str}> {step['name']}", style=step_style)
+                cleaned_step_name = self._clean_xml_text(step['name'])
+                self.document.add_paragraph(f"{indent_str}> {cleaned_step_name}", style=step_style)
                 if "parameters" in config_info and "parameters" in step:
                     for params in step["parameters"]:
                         paragraph = self.document.add_paragraph(f"{indent_str}    ", style="Step Param Parag")
+                        cleaned_param_name = self._clean_xml_text(params['name'])
+                        cleaned_param_value = self._clean_xml_text(self._format_argval(params['value']))
                         paragraph.add_run(
-                            f"{params['name']} = {self._format_argval(params['value'])}",
+                            f"{cleaned_param_name} = {cleaned_param_value}",
                             style="Step Param",
                         )
                 if "details" in config_info and "statusDetails" in step and len(step["statusDetails"]) != 0:
                     if "message" in step["statusDetails"] and len(step["statusDetails"]["message"]) != 0:
-                        self.document.add_paragraph(step["statusDetails"]["message"], style=step_style)
+                        cleaned_message = self._clean_xml_text(step["statusDetails"]["message"])
+                        self.document.add_paragraph(cleaned_message, style=step_style)
 
                     if "trace" in config_info and "trace" in step["statusDetails"] and len(
                             step["statusDetails"]["trace"]) != 0:
                         table = self.document.add_table(rows=1, cols=1, style="Trace table")
                         hdr_cells = table.rows[0].cells
-                        hdr_cells[0].add_paragraph(step["statusDetails"]["trace"] + "\n", style="Code")
+                        cleaned_trace = self._clean_xml_text(step["statusDetails"]["trace"])
+                        hdr_cells[0].add_paragraph(cleaned_trace + "\n", style="Code")
                         self.document.add_paragraph("", style=None)
                 if "attachments" in config_info:
                     self._print_attachments(step, config_info)
@@ -555,7 +561,8 @@ class ReportBuilder:
         config_info = self.config["info"][test["status"]]
         config_labels = self.config["labels"][test["status"]]
 
-        self.document.add_paragraph(f"{test['name']}  [ {test['status']} ]", style=f"Heading {test['status']}")
+        cleaned_name = self._clean_xml_text(test['name'])
+        self.document.add_paragraph(f"{cleaned_name}  [ {test['status']} ]", style=f"Heading {test['status']}")
 
         table = None
         added_table = False
@@ -601,14 +608,17 @@ class ReportBuilder:
         if "description" in config_info:
             self.document.add_heading("Description", level=2)
             if "description" in test and len(test["description"]) != 0:
-                self.document.add_paragraph(test["description"])
+                cleaned_description = self._clean_xml_text(test["description"])
+                self.document.add_paragraph(cleaned_description)
             else:
                 self.document.add_paragraph("No description available.")
 
         if "parameters" in config_info and "parameters" in test and len(test["parameters"]) != 0:
             self.document.add_heading("Parameters", level=2)
             for p in test["parameters"]:
-                self.document.add_paragraph(f"{p['name']}: {p['value']}", style="Step")
+                cleaned_param_name = self._clean_xml_text(p['name'])
+                cleaned_param_value = self._clean_xml_text(p['value'])
+                self.document.add_paragraph(f"{cleaned_param_name}: {cleaned_param_value}", style="Step")
 
         if (
                 "details" in config_info
@@ -623,11 +633,13 @@ class ReportBuilder:
         ):
             self.document.add_heading("Details", level=2)
             if "message" in test["statusDetails"]:
-                self.document.add_paragraph(test["statusDetails"]["message"], style=None)
+                cleaned_message = self._clean_xml_text(test["statusDetails"]["message"])
+                self.document.add_paragraph(cleaned_message, style=None)
             if "trace" in config_info and "trace" in test["statusDetails"]:
                 table = self.document.add_table(rows=1, cols=1, style="Trace table")
                 hdr_cells = table.rows[0].cells
-                hdr_cells[0].add_paragraph(test["statusDetails"]["trace"] + "\n", style="Code")
+                cleaned_trace = self._clean_xml_text(test["statusDetails"]["trace"])
+                hdr_cells[0].add_paragraph(cleaned_trace + "\n", style="Code")
                 self.document.add_paragraph("", style=None)
 
         if "links" in config_info and "links" in test and len(test["links"]) != 0:
@@ -668,3 +680,21 @@ class ReportBuilder:
                 self._delete_paragraph(self.document.paragraphs[-1])
 
         self.document.add_paragraph("", style=None)
+
+    @staticmethod
+    def _clean_xml_text(text):
+        """
+        Clean text to be XML compatible by removing NULL bytes and control characters.
+        """
+        if not text:
+            return ""
+        
+        # Remove NULL bytes and control characters except newlines and tabs
+        cleaned = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', str(text))
+        
+        # Replace problematic characters with safe alternatives
+        cleaned = cleaned.replace('\x0A', '\n')  # Line feed
+        cleaned = cleaned.replace('\x0D', '\r')  # Carriage return
+        cleaned = cleaned.replace('\x09', '\t')  # Tab
+        
+        return cleaned
